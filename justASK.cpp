@@ -204,11 +204,11 @@ static void writeMsgByte(uint8_t **bufPtr, uint16_t *crc, uint8_t data) {
 ASK_DriverBase::ASK_DriverBase(uint16_t bps)  {
 	assert(bps != 0);
 
-    assertFcsTable();
+	assertFcsTable();
 
 	_bps= bps;
 
-    sSingleton= this;
+	sSingleton= this;
 }
 
 bool ICACHE_RAM_ATTR ASK_DriverBase::isIdle() {
@@ -237,9 +237,9 @@ bool ASK_Receiver::init() {
 	assertReverseLookupTable();
 
 	setRunning();					// ready to receive
-    setupInterruptHandler(_bps, true);
+	setupInterruptHandler(_bps, true);
 
-    return true;
+	return true;
 }
 
 bool ASK_Receiver::validateMsg() {
@@ -260,12 +260,10 @@ bool ASK_Receiver::validateMsg() {
     //  msgId = _rxBuffer[3];
     //  flags = _rxBuffer[4];
 #endif
-   // 	Serial.println("CRC good");	// XXX
   		return true;
     }
 	// note: even in "favorable" test conditions the error rate is rather high (at 80cm distance
 	// and 1000 bps my superheterodyne receiver still got corrupted messages about 20% of the time..)
-  //  Serial.print("CRC error "); Serial.println(fcs, HEX);	// XXX FIXME
     return false;
 }
 
