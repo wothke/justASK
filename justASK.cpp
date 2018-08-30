@@ -38,7 +38,7 @@ static ASK_DriverBase *sSingleton= 0;	// last one wins - implementation supports
 // interrupt handler is called RX_PLL_SAMPLES times per sent/received bit
 #ifdef ESP8266
 // for some reason the code crashes when using instance vars with setter/getter (even with ICACHE_RAM_ATTR)
-// better make keep it as simple as possible for the ESP8266 crap..
+// better keep it as simple as possible for the ESP8266 crap..
 static uint32_t sCyclesOffset;	// global
 
 // wrapper used to reduce visibility of method
