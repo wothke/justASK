@@ -230,7 +230,7 @@ ASK_Receiver::ASK_Receiver(uint16_t bps, uint8_t rxPin) : ASK_DriverBase(bps),
 		_rxPin(rxPin),  _rxBufferLen(0), _rxID(0), _rxRamp(0), _rxSymbolFlag(false), _rxBit(0), _rxBitCount(0),
 		_rxDataAvailable(false), _rxValidMsgAvailable(false) {
 
-    pinMode(_rxPin, INPUT);
+	pinMode(_rxPin, INPUT);
 }
 
 bool ASK_Receiver::init() {
@@ -243,13 +243,13 @@ bool ASK_Receiver::init() {
 }
 
 bool ASK_Receiver::validateMsg() {
-    uint16_t fcs= CRC_SEED;
-    for (uint8_t i= 0; i < _rxBufferLen; i++) {
-    	fcs= crc_kermit(fcs, _rxBuffer[i]);
-    }
-    if (fcs == CRC_GOOD) {
-    	// note: the default implementation does not use any additional headers here
-    	// since those are handled in higher level protocols anyway (in my use-case)
+	uint16_t fcs= CRC_SEED;
+	for (uint8_t i= 0; i < _rxBufferLen; i++) {
+		fcs= crc_kermit(fcs, _rxBuffer[i]);
+	}
+	if (fcs == CRC_GOOD) {
+		// note: the default implementation does not use any additional headers here
+		// since those are handled in higher level protocols anyway (in my use-case)
 
 #ifdef RADIOHEAD_COMPAT_MODE
     // if anybody cared he could get the 4 RadioHead specific headers: TO/FROM/MsgID/Flags
@@ -260,34 +260,34 @@ bool ASK_Receiver::validateMsg() {
     //  msgId = _rxBuffer[3];
     //  flags = _rxBuffer[4];
 #endif
-  		return true;
-    }
+		return true;
+	}
 	// note: even in "favorable" test conditions the error rate is rather high (at 80cm distance
 	// and 1000 bps my superheterodyne receiver still got corrupted messages about 20% of the time..)
-    return false;
+	return false;
 }
 
 bool ASK_Receiver::hasReceivedMsg() {
-    if (_rxDataAvailable) {
-    	_rxValidMsgAvailable= validateMsg();
+	if (_rxDataAvailable) {
+		_rxValidMsgAvailable= validateMsg();
 
-    	// get ready for next message
-    	_rxDataAvailable= false;
+		// get ready for next message
+		_rxDataAvailable= false;
 		_rxSymbolFlag= false;
-		if (!_rxValidMsgAvailable) setRunning();	// otherwise wait until message has been claimed
-    }
-    return _rxValidMsgAvailable;
+		if (!_rxValidMsgAvailable) { setRunning(); } // otherwise wait until message has been claimed
+	}
+	return _rxValidMsgAvailable;
 }
 
 bool ASK_Receiver::waitReceive(uint16_t timeoutMs) {
-    uint32_t t= millis();
-    while (!timeoutMs || ((millis() - t) < timeoutMs)) {
-    	yield();		// make sure this cannot crash the ESP8266!
+	uint32_t t= millis();
+	while (!timeoutMs || ((millis() - t) < timeoutMs)) {
+		yield();		// make sure this cannot crash the ESP8266!
 		if (hasReceivedMsg()) {
 			return true;
 		}
-    }
-    return false;
+	}
+	return false;
 }
 
 void ASK_Receiver::assertReverseLookupTable() {
@@ -311,7 +311,7 @@ bool ASK_Receiver::receiveMsg(uint8_t *buf, uint8_t *len) {
 
 	bool success= false;
 
-    if (hasReceivedMsg()) {
+	if (hasReceivedMsg()) {
 		uint8_t messageLen= _rxBufferLen - PROTOCOL_WRAPPER_LEN;
 		if (*len > messageLen) {
 			*len= messageLen;
@@ -321,36 +321,36 @@ bool ASK_Receiver::receiveMsg(uint8_t *buf, uint8_t *len) {
 		}
 		_rxValidMsgAvailable= false;	// clear for next reception
 		setRunning();
-    }
+	}
 	return success;
 }
 
 bool ICACHE_RAM_ATTR ASK_Receiver::read() {
-    return digitalRead(_rxPin);
+	return digitalRead(_rxPin);
 }
 
 // low level PLL-based message reception logic (interrupt driven) - see "p11" in original DK200A.ASM implementation
 void ICACHE_RAM_ATTR ASK_Receiver::doHandleInterrupt() {
 	if (isIdle()) { return; }	// do not receive new message while previous message has not been claimed
 
-    bool rxsmp= read();
+	bool rxsmp= read();
 
-    _rxID += (rxsmp ? 1 : 0);	// count "set" samples
+	_rxID += (rxsmp ? 1 : 0);	// count "set" samples
 
-    if (rxsmp == _rxPrevSample) {
+	if (rxsmp == _rxPrevSample) {
 		_rxRamp+= RX_PLL_RAMP_INC;
-    } else {
+	} else {
 		_rxPrevSample= rxsmp;
 
-    	if (_rxRamp < RX_PLL_RAMP_SWITCH) {
-    		_rxRamp+= RX_PLL_RAMP_INC_RETARD;
-    	} else {
-    		_rxRamp+= RX_PLL_RAMP_INC_ADVANCE;
-    	}
-    }
+		if (_rxRamp < RX_PLL_RAMP_SWITCH) {
+			_rxRamp+= RX_PLL_RAMP_INC_RETARD;
+		} else {
+			_rxRamp+= RX_PLL_RAMP_INC_ADVANCE;
+		}
+	}
 
 
-    if (_rxRamp >= RX_PLL_RAMP_TOP) {	// see "p116" -> wrap
+	if (_rxRamp >= RX_PLL_RAMP_TOP) {	// see "p116" -> wrap
 		_rxBit >>= 1;
 		_rxBit|= (_rxID >= 5) ? 0b100000000000: 0x0;	// store received as MS 12th bit
 		_rxID= 0; 										// restart for next bit
@@ -382,14 +382,13 @@ void ICACHE_RAM_ATTR ASK_Receiver::doHandleInterrupt() {
 
 					if (_rxBufferLen == _rxExpectedLen) {
 						setIdle();	// block reception of new messages until this one has been claimed
-
 						_rxDataAvailable= true;	// signal that unverified message is available
 					}
 				}
 				_rxBitCount= 0;
 			}
 		}
-    }
+	}
 }
 
 // ---------------------------- TRANSMITTER -------------------------------------
@@ -398,10 +397,10 @@ ASK_Transmitter::ASK_Transmitter(uint16_t bps, uint8_t txPin, uint8_t txEnablePi
 		_txPin(txPin),
 		_txEnablePin(txEnablePin) {
 
-    pinMode(_txPin, OUTPUT);
-    if (_txEnablePin != TX_ALWAYS_ENABLED) { pinMode(_txEnablePin, OUTPUT); }
+	pinMode(_txPin, OUTPUT);
+	if (_txEnablePin != TX_ALWAYS_ENABLED) { pinMode(_txEnablePin, OUTPUT); }
 
-    memcpy(_txBuffer, PREAMBLE, sizeof(PREAMBLE));
+	memcpy(_txBuffer, PREAMBLE, sizeof(PREAMBLE));
 }
 
 void ICACHE_RAM_ATTR ASK_Transmitter::disableTx() {
@@ -410,12 +409,12 @@ void ICACHE_RAM_ATTR ASK_Transmitter::disableTx() {
 		write(LOW);
 	}
 }
+
 void ICACHE_RAM_ATTR ASK_Transmitter::enableTx() {
 	if (_txEnablePin != TX_ALWAYS_ENABLED) {
 		digitalWrite(_txEnablePin, HIGH);
 	}
 }
-
 
 bool ASK_Transmitter::init() {
 	disableTx();
@@ -430,53 +429,52 @@ void ICACHE_RAM_ATTR ASK_Transmitter::write(bool value) {
 }
 
 bool ASK_Transmitter::waitMsgSent(uint16_t timeout) {
-    uint32_t t= millis();
-    while (!timeout || ((millis() - t) < timeout)) {
-    	yield();		// make sure this cannot crash the ESP8266!
-        if (isIdle()) { // wait for end of previous transmission
-           return true;
-        }
-    }
-    return false;
+	uint32_t t= millis();
+	while (!timeout || ((millis() - t) < timeout)) {
+		yield();		// make sure this cannot crash the ESP8266!
+		if (isIdle()) { // wait for end of previous transmission
+			return true;
+		}
+	}
+	return false;
 }
 
 bool ASK_Transmitter::sendMsg(const uint8_t *data, uint8_t len) {
-    if ((len > MAX_ASK_PAYLOAD_LEN) || !waitMsgSent(AVAILABLE_TIMEOUT)) { return false; }
+	if ((len > MAX_ASK_PAYLOAD_LEN) || !waitMsgSent(AVAILABLE_TIMEOUT)) { return false; }
 
 	uint8_t *msgPos, *msgStart;
-    msgPos= msgStart= _txBuffer + (PREAMBLE_LEN<<1);
+	msgPos= msgStart= _txBuffer + (PREAMBLE_LEN<<1);
 
-    uint16_t fcs= CRC_SEED;
-    writeMsgByte(&msgPos, &fcs, len + PROTOCOL_WRAPPER_LEN);	// use same calculation as RadioHead for compatibility
+	uint16_t fcs= CRC_SEED;
+	writeMsgByte(&msgPos, &fcs, len + PROTOCOL_WRAPPER_LEN);	// use same calculation as RadioHead for compatibility
 
 #ifdef RADIOHEAD_COMPAT_MODE
-    // whatever RadioHead might be using these field for ISN'T supported in this implementation
-    // (it is just a placeholder)
-    writeMsgByte(&msgPos, &fcs, BROADCAST_ADDR);	// TO
-    writeMsgByte(&msgPos, &fcs, BROADCAST_ADDR);	// FROM
-    writeMsgByte(&msgPos, &fcs, 0);				// header ID
-    writeMsgByte(&msgPos, &fcs, 0);				// header flags
+	// whatever RadioHead might be using these field for ISN'T supported in this implementation
+	// (it is just a placeholder)
+	writeMsgByte(&msgPos, &fcs, BROADCAST_ADDR);	// TO
+	writeMsgByte(&msgPos, &fcs, BROADCAST_ADDR);	// FROM
+	writeMsgByte(&msgPos, &fcs, 0);				// header ID
+	writeMsgByte(&msgPos, &fcs, 0);				// header flags
 #endif
 
-    // actual "message payload"
-    for (uint8_t i= 0; i < len; i++) {
-        writeMsgByte(&msgPos, &fcs, data[i]);
-    }
+	// actual "message payload"
+	for (uint8_t i= 0; i < len; i++) {
+		writeMsgByte(&msgPos, &fcs, data[i]);
+	}
 
-    // for compatibility with RadioHead  the same CRC approach is used here
-    fcs= ~fcs;
-    writeMsgByte(&msgPos, 0, fcs & 0xff);
-    writeMsgByte(&msgPos, 0, fcs >> 8);
+	// for compatibility with RadioHead  the same CRC approach is used here
+	fcs= ~fcs;
+	writeMsgByte(&msgPos, 0, fcs & 0xff);
+	writeMsgByte(&msgPos, 0, fcs >> 8);
 
-    _txBufferLen= (msgPos-msgStart) + (PREAMBLE_LEN<<1);
+	_txBufferLen= (msgPos-msgStart) + (PREAMBLE_LEN<<1);
 
-
-    // trigger interrupt based transmission
+	// trigger interrupt based transmission
 	_txIdx= _txBitIdx= 0;
 	enableTx();
 	setRunning();
 
-    return true;
+	return true;
 }
 
 void ICACHE_RAM_ATTR ASK_Transmitter::doHandleInterrupt() {
@@ -493,8 +491,8 @@ void ICACHE_RAM_ATTR ASK_Transmitter::doHandleInterrupt() {
 			_txIdx++;
 		}
 	} else {
-    	disableTx();	// done with this message
-    	setIdle();
+		disableTx();	// done with this message
+		setIdle();
 	}
 }
 
