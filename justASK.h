@@ -176,8 +176,6 @@ protected:
     // source of the bit that is to be sent next:
     uint8_t _txIdx;			// buffer index
     uint8_t _txBitIdx;		// bit index
-
-    friend void handleInterrupt();
 };
 
 
