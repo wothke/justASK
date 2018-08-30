@@ -34,8 +34,6 @@ static uint8_t *s4bitLookup= 0;
 // CAUTION: DO NOT statically allocate ASK_Receiver/ASK_Transmitter instances or you may still get respective crashes!
 
 static ASK_DriverBase *sSingleton= 0;	// last one wins - implementation supports exactly one instance
-										// (for some reason doesn't seem to work as a class variable)
-
 
 // interrupt handler is called RX_PLL_SAMPLES times per sent/received bit
 #ifdef ESP8266
